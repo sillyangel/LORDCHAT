@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Chat</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+  <link rel="stylesheet" href="/global.css">
+
+<body>
+  <div id="chat">
+    <div id="people-list"></div>
+    <div id="messages"></div>
+    <input type="text" id="message" placeholder="Type a messages...">
+    <button id="send">Send</button>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    if (!document.cookie.includes("username")) {
+  window.location.href = "/";
+}
+    const socket = io();
+    const username = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)username\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const messageInput = document.getElementById('message');
+      const messagesDiv = document.getElementById('messages');
+      const sendButton = document.getElementById('send');
+      const peopleList = document.getElementById('people-list');
+
+      sendButton.addEventListener('click', () => {
+        const message = messageInput.value;
+        if (message) {
+          socket.emit('chatMessage', { username, message });
+          messageInput.value = '';
+        }
+      });
+
+      socket.on('chatMessage', ({ username, message }) => {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${username}: ${message}`;
+        messagesDiv.appendChild(messageElement);
+      });
+
+      socket.on('userJoined', (joinedUsername) => {
+        const userJoinedElement = document.createElement('div');
+        userJoinedElement.textContent = `${joinedUsername} joined the chat`;
+        messagesDiv.appendChild(userJoinedElement);
+
+        updateActiveUsers();
+      });
+
+      socket.on('userLeft', (leftUsername) => {
+        const userLeftElement = document.createElement('div');
+        userLeftElement.textContent = `${leftUsername} left the chat`;
+        messagesDiv.appendChild(userLeftElement);
+
+        updateActiveUsers();
+      });
+
+      function updateActiveUsers() {
+        const activeUsers = Object.values(users);
+        peopleList.innerHTML = '<strong>Active Users:</strong><br>' + activeUsers.join('<br>');
+      }
+
+      socket.emit('userJoined', username);
+    });
+  </script>
+  <script>
+    window.addEventListener('blur', function() {
+    location.reload();
+});
+  </script>
+</body>
+</html>

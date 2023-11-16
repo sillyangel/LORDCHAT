@@ -1,0 +1,47 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Chat</title>
+</head>
+  <style>
+    
+  </style>
+  <!-- Inside the <head> section of your HTML -->
+<link rel="stylesheet" href="/global.css">
+
+<body>
+  <div id="chat">
+    <input type="text" id="username" placeholder="Enter your username">
+    <br>
+    <label for="tosCheckbox">I have read and agree to the <a href="/tos" target="_blank">Terms of Service</a></label>
+    <input type="checkbox" id="tosCheckbox">
+    <button id="join" disabled>Join Chat</button>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const usernameInput = document.getElementById('username');
+      const tosCheckbox = document.getElementById('tosCheckbox');
+      const joinButton = document.getElementById('join');
+
+      tosCheckbox.addEventListener('change', () => {
+        joinButton.disabled = !tosCheckbox.checked;
+      });
+
+      joinButton.addEventListener('click', () => {
+        const username = usernameInput.value;
+        if (username) {
+          document.cookie = `username=${encodeURIComponent(username)}`;
+          socket.emit('userJoined', username);
+          window.location.href = '/chat';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
